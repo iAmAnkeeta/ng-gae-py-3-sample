@@ -1,0 +1,44 @@
+service: default
+runtime: python37
+# Uncomment the line below if you have more than one services to deploy
+# Also make sure to uncomment the "gunicorn" in requirements.txt before deploying
+entrypoint: gunicorn -c gunicorn.conf.py -b :$PORT main:app
+instance_class: F1
+
+automatic_scaling:
+  min_instances: 0
+  min_idle_instances: 1
+
+handlers:
+# All URLs ending in .gif .png or .jpg are treated as paths to
+# static files in the dist/ directory. The URL pattern is a
+# regular expression, with a grouping that is inserted into the
+# path to the file.
+
+# Routing for typedoc, assets and favicon.ico to serve directly
+- url: /((?:assets|docs)/.*|favicon\.ico)
+  secure: always
+  static_files: dist/\1
+  upload: dist/.*
+
+# Routing for bundles to serve directly
+- url: /((?:runtime|main|polyfills|styles|vendor)\.[a-z0-9]+\.js)
+  secure: always
+  static_files: dist/\1
+  upload: dist/.*
+
+# Routing styles.bundle.css to serve directly
+- url: /(styles\.[a-z0-9]+\.css)
+  secure: always
+  static_files: dist/\1
+  upload: dist/.*
+
+# Routing for all types of images
+- url: /(.*\.(gif|png|jpg|css|js|svg)(|\.map))$
+  secure: always
+  static_files: dist/\1
+  upload: dist/(.*)(|\.map)
+
+env_variables:
+  PROD_APP_ID: 'keeter-angular-app-test'
+  DEPLOYED_APP_VERSION: '0-0-0-1'
